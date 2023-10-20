@@ -1,0 +1,23 @@
+{
+  "name": "appsync-offline-raed",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.431.0",
+    "@aws-sdk/lib-dynamodb": "^3.431.0",
+    "serverless": "^3.35.2",
+    "serverless-appsync-plugin": "^2.4.0",
+    "serverless-better-credentials": "^1.2.1",
+    "serverless-offline": "^13.2.0"
+  },
+  "devDependencies": {
+    "serverless-appsync-simulator": "^0.20.0",
+    "serverless-dynamodb": "^0.2.47"
+  }
+}

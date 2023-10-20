@@ -1,0 +1,105 @@
+service: appsync-raed-dynamo-offline
+frameworkVersion: '3'
+
+plugins:
+  - serverless-better-credentials
+  - serverless-appsync-simulator
+  - serverless-dynamodb
+  - serverless-appsync-plugin
+  - serverless-offline
+
+provider:
+  name: aws
+  profile: sso-dev
+  runtime: nodejs18.x
+  environment:
+    tableName: ${self:custom.tableName}
+    IS_OFFLINE: ${self:custom.IS_OFFLINE}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+            - dynamodb:*
+            - s3:*
+            - ses:*
+      Resource: '*'
+
+custom:
+   tableName: raed-appsync-offline-dynamo-table
+   IS_OFFLINE: true
+   dynamodb: 
+       stages:
+         - dev
+       start:
+         port: 8000
+         inMemory: true
+         migrate: true
+       migration:
+           dir: offline/migrations
+
+appSync:
+  name: raed-api-appsync-3-dynamo-offline
+  schema: 'schemas/*.graphql'
+  authentication:
+    type: API_KEY
+  dataSources:
+    raedDatasource:
+      type: 'AWS_LAMBDA'
+      config:
+        function:
+          timeout: 30
+          handler: 'functions/getPost.handler'
+    raedDatasourceCreatePost2:
+      type: 'AWS_LAMBDA'
+      config:
+        function:
+          timeout: 30
+          handler: 'functions/createPostDb.handler'
+    raedDatasourceGetPost:
+      type: 'AWS_LAMBDA'
+      config:
+        function:
+          timeout: 30
+          handler: 'functions/getPostDb.handler'
+  pipelineFunctions:
+    getPost:
+      handler: functions/getPost.handler
+      dataSource: raedDatasource
+    createPostDb:
+      handler: functions/createPostDb.handler
+      dataSource: raedDatasourceCreatePost2
+    getPostDb:
+      handler: functions/getPostDb.handler
+      dataSource: raedDatasourceGetPost
+  resolvers:
+    Query.singlePost:
+      type: Query
+      field: singlePost
+      functions:
+        - getPost
+    Mutation.putPost:
+      type: Mutation
+      field: putPost
+      functions:
+        - createPostDb
+    Query.getPostQuery:
+      type: Query
+      field: getPostQuery
+      functions:
+        - getPostDb
+
+resources:
+  Resources:
+    RaedDynamoDbTable:
+          Type: AWS::DynamoDB::Table
+          Properties:
+              TableName: ${self:custom.tableName}
+              AttributeDefinitions:
+                  - AttributeName: ID
+                    AttributeType: S
+              KeySchema:
+                  - AttributeName: ID
+                    KeyType: HASH
+              BillingMode: PAY_PER_REQUEST
+
+
+ 

@@ -1,0 +1,19 @@
+type Post {
+	ID: ID
+	title: String
+	public: Boolean
+}
+
+type Mutation {
+	putPost(ID: ID!, title: String!, public: Boolean): Post
+}
+
+type Query {
+	singlePost(id: ID!): Post
+	getPostQuery(ID: ID!): Post
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}
